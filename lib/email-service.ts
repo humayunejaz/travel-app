@@ -65,3 +65,4 @@ export async function sendInvitationEmail(emailData: InvitationEmailData) {
     throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }
+
