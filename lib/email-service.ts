@@ -10,6 +10,10 @@ export interface InvitationEmailData {
 }
 
 export async function sendInvitationEmail(emailData: InvitationEmailData) {
+  // This should show up immediately
+  console.log("🚀 NEW EMAIL SERVICE CODE IS RUNNING!")
+  console.log("🚀 Attempting to send email to:", emailData.to)
+
   try {
     // Check if all required environment variables are present
     const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
