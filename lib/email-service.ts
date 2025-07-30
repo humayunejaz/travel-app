@@ -11,40 +11,57 @@ export interface InvitationEmailData {
 
 export async function sendInvitationEmail(emailData: InvitationEmailData) {
   try {
-    // Initialize EmailJS with your public key
-    emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!)
+    // Check if all required environment variables are present
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
 
-    const invitationLink = `${window.location.origin}/invitations/${emailData.invitationId}`
+    console.log("=== EmailJS Debug Info ===")
+    console.log("Service ID:", serviceId)
+    console.log("Template ID:", templateId)
+    console.log("Public Key:", publicKey ? `${publicKey.substring(0, 10)}...` : "Missing")
 
-    // The exact data being sent to EmailJS
-    const templateParams = {
-      inviter_name: emailData.inviterName,
-      trip_name: emailData.tripName,
-      invitation_link: invitationLink,
-      message: emailData.message || "No personal message",
-      role: emailData.role,
+    if (!serviceId || !templateId || !publicKey) {
+      throw new Error("EmailJS configuration is incomplete")
     }
 
-    console.log("EmailJS Template Params:", templateParams)
-    console.log("Service ID:", process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID)
-    console.log("Template ID:", process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID)
+    // Initialize EmailJS
+    emailjs.init(publicKey)
 
-    // Send email using EmailJS
-    const response = await emailjs.send(
-      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-      templateParams,
-    )
+    // Create the simplest possible template params
+    const templateParams = {
+      user_name: emailData.inviterName,
+      user_email: emailData.to,
+      message: `You've been invited to join "${emailData.tripName}" as a ${emailData.role}. Link: ${window.location.origin}/invitations/${emailData.invitationId}`,
+    }
 
-    console.log("Email sent successfully:", response)
+    console.log("=== Sending Email ===")
+    console.log("Template Params:", templateParams)
+
+    // Send email
+    const response = await emailjs.send(serviceId, templateId, templateParams)
+
+    console.log("=== Email Success ===")
+    console.log("Response:", response)
 
     return {
       success: true,
       data: response,
-      message: "Invitation email sent successfully!",
+      message: "Email sent successfully!",
     }
   } catch (error) {
-    console.error("EmailJS error:", error)
-    throw new Error(`Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`)
+    console.error("=== EmailJS Error ===")
+    console.error("Full error object:", error)
+    console.error("Error type:", typeof error)
+    console.error("Error constructor:", error?.constructor?.name)
+
+    if (error && typeof error === "object" && "text" in error) {
+      console.error("Error text:", error.text)
+    }
+    if (error && typeof error === "object" && "status" in error) {
+      console.error("Error status:", error.status)
+    }
+
+    throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }
