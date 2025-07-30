@@ -1,3 +1,5 @@
+alert("EMAIL SERVICE FILE IS LOADED!")
+
 import emailjs from "@emailjs/browser"
 
 export interface InvitationEmailData {
