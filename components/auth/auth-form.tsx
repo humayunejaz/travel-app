@@ -10,10 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Loader2, Gift } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
-export default function AuthForm() {
+interface AuthFormProps {
+  invitationId?: string
+}
+
+export default function AuthForm({ invitationId }: AuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -62,26 +67,20 @@ export default function AuthForm() {
     setLoading(true)
 
     try {
-      console.log("Attempting to sign in with:", email) // Debug log
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
-      console.log("Sign in response:", { data, error }) // Debug log
+      if (error) throw error
 
-      if (error) {
-        console.error("Sign in error:", error) // Debug log
-        throw error
+      // If there's an invitation, redirect to invitation page
+      if (invitationId) {
+        window.location.href = `/invitations/${invitationId}`
+      } else {
+        window.location.href = "/dashboard"
       }
-
-      console.log("Sign in successful, user:", data.user) // Debug log
-
-      // Force a page refresh to trigger the redirect
-      window.location.href = "/dashboard"
     } catch (error: any) {
-      console.error("Caught error:", error) // Debug log
       toast({
         title: "Error",
         description: error.message || "An unexpected error occurred",
@@ -95,10 +94,14 @@ export default function AuthForm() {
   const handleGoogleSignIn = async () => {
     setLoading(true)
     try {
+      const redirectTo = invitationId
+        ? `${window.location.origin}/auth/callback?invitation=${invitationId}`
+        : `${window.location.origin}/auth/callback`
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
         },
       })
       if (error) throw error
@@ -118,9 +121,20 @@ export default function AuthForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Travel App</CardTitle>
-          <CardDescription>Plan your trips and collaborate with friends</CardDescription>
+          <CardDescription>
+            {invitationId ? "Sign in to accept your trip invitation" : "Plan your trips and collaborate with friends"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          {invitationId && (
+            <Alert className="mb-4 border-blue-200 bg-blue-50">
+              <Gift className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                You've been invited to collaborate on a trip! Sign in or create an account to accept the invitation.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -151,7 +165,7 @@ export default function AuthForm() {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign In
+                  {invitationId ? "Sign In & Accept Invitation" : "Sign In"}
                 </Button>
               </form>
 
@@ -226,7 +240,7 @@ export default function AuthForm() {
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign Up
+                  {invitationId ? "Sign Up & Accept Invitation" : "Sign Up"}
                 </Button>
               </form>
 
