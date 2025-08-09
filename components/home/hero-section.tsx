@@ -10,14 +10,16 @@ import { Plane, Users, MapPin, Calendar, Mail, Shield, Gift } from "lucide-react
 
 export default function HeroSection() {
   const searchParams = useSearchParams()
-  const invitationId = searchParams.get("invitation")
+  const [invitationId, setInvitationId] = useState<string | null>(null)
   const [showInvitationAlert, setShowInvitationAlert] = useState(false)
 
   useEffect(() => {
-    if (invitationId) {
+    const invitation = searchParams.get("invitation")
+    if (invitation) {
+      setInvitationId(invitation)
       setShowInvitationAlert(true)
     }
-  }, [invitationId])
+  }, [searchParams])
 
   const authLink = invitationId ? `/auth?invitation=${invitationId}` : "/auth"
 
