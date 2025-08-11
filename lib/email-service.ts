@@ -23,8 +23,7 @@ export async function sendInvitationEmail(emailData: InvitationEmailData) {
     // Initialize EmailJS
     emailjs.init(publicKey)
 
-    // Link to homepage with invitation context instead of direct invitation page
-    const invitationLink = `${window.location.origin}/home?invitation=${emailData.invitationId}`
+    const invitationLink = `${window.location.origin}/auth?invitation=${emailData.invitationId}`
 
     // Create template params
     const templateParams = {
@@ -48,18 +47,8 @@ If you don't have an account yet, you can sign up for free and then accept the i
       data: response,
       message: "Email sent successfully!",
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error("EmailJS error:", error)
-
-    if (error.status === 426) {
-      throw new Error("EmailJS monthly limit exceeded. Please upgrade your EmailJS account or wait until next month.")
-    } else if (error.status === 400) {
-      throw new Error("EmailJS configuration error. Please check your template variables and public key.")
-    } else if (error.status === 401) {
-      throw new Error("EmailJS authentication failed. Please check your public key.")
-    } else {
-      throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
-    }
+    throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }
-
