@@ -21,7 +21,7 @@ export default function HeroSection() {
     }
   }, [searchParams])
 
-  const authLink = invitationId ? `/auth?invitation=${invitationId}&force=true` : "/auth?force=true"
+  const authLink = invitationId ? `/auth?invitation=${invitationId}` : "/auth"
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -212,4 +212,3 @@ export default function HeroSection() {
     </div>
   )
 }
-
