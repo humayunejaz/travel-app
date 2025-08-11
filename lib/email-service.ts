@@ -48,9 +48,18 @@ If you don't have an account yet, you can sign up for free and then accept the i
       data: response,
       message: "Email sent successfully!",
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("EmailJS error:", error)
-    throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+
+    if (error.status === 426) {
+      throw new Error("EmailJS monthly limit exceeded. Please upgrade your EmailJS account or wait until next month.")
+    } else if (error.status === 400) {
+      throw new Error("EmailJS configuration error. Please check your template variables and public key.")
+    } else if (error.status === 401) {
+      throw new Error("EmailJS authentication failed. Please check your public key.")
+    } else {
+      throw new Error(`EmailJS failed: ${error instanceof Error ? error.message : "Unknown error"}`)
+    }
   }
 }
 
