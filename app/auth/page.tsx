@@ -5,6 +5,7 @@ import AuthForm from "@/components/auth/auth-form"
 interface AuthPageProps {
   searchParams: {
     invitation?: string
+    force?: string
   }
 }
 
@@ -14,7 +15,7 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (user) {
+  if (user && !searchParams.force) {
     // If user is logged in and has invitation, redirect to invitation page
     if (searchParams.invitation) {
       redirect(`/invitations/${searchParams.invitation}`)
