@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,12 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
   const [agencyName, setAgencyName] = useState("")
 
   const supabase = createClient()
+
+  useEffect(() => {
+    if (invitationId) {
+      supabase.auth.signOut()
+    }
+  }, [invitationId, supabase.auth])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
