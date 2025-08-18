@@ -68,29 +68,29 @@ export default function TripCard({ trip, onUpdate, isAgencyView = false }: TripC
               <CardTitle className="text-lg">{trip.name}</CardTitle>
               {trip.description && <CardDescription className="line-clamp-2">{trip.description}</CardDescription>}
             </div>
-            {!isAgencyView && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {!isAgencyView && (
                   <DropdownMenuItem onClick={() => setShowInviteDialog(true)}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Invite Collaborator
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Trip
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} disabled={loading}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Trip
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                )}
+                <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  {isAgencyView ? "Edit Trip (Agency)" : "Edit Trip"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} disabled={loading}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {isAgencyView ? "Delete Trip (Agency)" : "Delete Trip"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -157,16 +157,18 @@ export default function TripCard({ trip, onUpdate, isAgencyView = false }: TripC
         </CardContent>
       </Card>
 
-      <InviteCollaboratorDialog
-        open={showInviteDialog}
-        onOpenChange={setShowInviteDialog}
-        tripId={trip.id}
-        tripName={trip.name}
-        onInviteSent={() => {
-          setShowInviteDialog(false)
-          onUpdate()
-        }}
-      />
+      {!isAgencyView && (
+        <InviteCollaboratorDialog
+          open={showInviteDialog}
+          onOpenChange={setShowInviteDialog}
+          tripId={trip.id}
+          tripName={trip.name}
+          onInviteSent={() => {
+            setShowInviteDialog(false)
+            onUpdate()
+          }}
+        />
+      )}
 
       <EditTripDialog
         open={showEditDialog}
