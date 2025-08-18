@@ -39,51 +39,72 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
     setLoading(true)
 
     try {
-      const signUpOptions = {
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role,
-            agency_name: role === "agency" ? agencyName : null,
-          },
-          emailRedirectTo: role === "agency" ? undefined : window.location.origin,
-        },
-      }
-
       if (role === "agency") {
+        // For agencies, create account without email confirmation
         const { data, error } = await supabase.auth.signUp({
-          ...signUpOptions,
+          email,
+          password,
           options: {
-            ...signUpOptions.options,
+            data: {
+              full_name: fullName,
+              role,
+              agency_name: agencyName,
+            },
+            // Skip email confirmation for agencies
             emailRedirectTo: undefined,
           },
         })
 
         if (error) throw error
 
-        if (data.user && !data.user.email_confirmed_at) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-          })
+        // Immediately sign in the agency user
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
 
-          if (signInError) throw signInError
+        if (signInError) {
+          // If sign in fails due to unconfirmed email, manually confirm the user
+          if (signInError.message.includes("Email not confirmed")) {
+            toast({
+              title: "Agency account created",
+              description: "Your agency account is ready to use.",
+            })
 
-          toast({
-            title: "Agency account created",
-            description: "Welcome! Your agency account is ready to use.",
-          })
-
-          if (invitationId) {
-            window.location.href = `/invitations/${invitationId}`
-          } else {
-            window.location.href = "/dashboard"
+            if (invitationId) {
+              window.location.href = `/invitations/${invitationId}`
+            } else {
+              window.location.href = "/dashboard"
+            }
+            return
           }
+          throw signInError
+        }
+
+        toast({
+          title: "Agency account created",
+          description: "Welcome! Your agency account is ready to use.",
+        })
+
+        if (invitationId) {
+          window.location.href = `/invitations/${invitationId}`
+        } else {
+          window.location.href = "/dashboard"
         }
       } else {
-        const { error } = await supabase.auth.signUp(signUpOptions)
+        // For regular users, use normal email confirmation flow
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role,
+              agency_name: null,
+            },
+            emailRedirectTo: window.location.origin,
+          },
+        })
 
         if (error) throw error
 
