@@ -23,7 +23,7 @@ export async function sendInvitationEmail(emailData: InvitationEmailData) {
     // Initialize EmailJS
     emailjs.init(publicKey)
 
-    const invitationLink = `${window.location.origin}/auth?invitation=${emailData.invitationId}`
+    const invitationLink = `${window.location.origin}/home?invitation=${emailData.invitationId}`
 
     // Create template params
     const templateParams = {
