@@ -136,10 +136,16 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
 
       if (error) throw error
 
-      if (invitationId) {
-        window.location.href = `/invitations/${invitationId}`
-      } else {
-        window.location.href = "/dashboard"
+      if (data.user) {
+        const { data: profile } = await supabase.from("user_profiles").select("role").eq("id", data.user.id).single()
+
+        if (invitationId) {
+          window.location.href = `/invitations/${invitationId}`
+        } else if (profile?.role === "agency") {
+          window.location.href = "/agency-dashboard"
+        } else {
+          window.location.href = "/dashboard"
+        }
       }
     } catch (error: any) {
       toast({
