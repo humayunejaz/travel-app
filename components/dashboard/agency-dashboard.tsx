@@ -49,28 +49,35 @@ export function AgencyDashboard({ user }: AgencyDashboardProps) {
 
       const { data: tripsData, error } = await supabase
         .from("trips")
-        .select(`
-        *,
-        owner:users!trips_owner_id_fkey(*),
-        collaborators:trip_collaborators(
-          *,
-          user:users(*)
-        )
-      `)
+        .select("*")
         .order("created_at", { ascending: false })
 
       console.log("[v0] Agency trips query result:", { data: tripsData, error })
 
       if (error) {
         console.error("[v0] Error fetching trips for agency:", error)
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("trips")
+          .select("id, name, description, destinations, start_date, end_date, privacy, created_at, owner_id")
+          .order("created_at", { ascending: false })
+
+        console.log("[v0] Fallback query result:", { data: fallbackData, error: fallbackError })
+        setTrips(fallbackData || [])
       } else {
         console.log("[v0] Agency fetched trips count:", tripsData?.length || 0)
         console.log("[v0] Agency fetched trips:", tripsData)
+        setTrips(tripsData || [])
       }
-
-      setTrips(tripsData || [])
     } catch (error) {
       console.error("[v0] Error in agency fetchTrips:", error)
+      try {
+        const { data: basicTrips } = await supabase.from("trips").select("*")
+        console.log("[v0] Basic trips fallback:", basicTrips)
+        setTrips(basicTrips || [])
+      } catch (finalError) {
+        console.error("[v0] All queries failed:", finalError)
+        setTrips([])
+      }
     } finally {
       setLoading(false)
     }
@@ -169,3 +176,4 @@ export function AgencyDashboard({ user }: AgencyDashboardProps) {
 }
 
 export default AgencyDashboard
+
