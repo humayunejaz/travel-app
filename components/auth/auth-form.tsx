@@ -97,31 +97,6 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true)
-    try {
-      const redirectTo = invitationId
-        ? `${window.location.origin}/auth/callback?invitation=${invitationId}`
-        : `${window.location.origin}/auth/callback`
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-        },
-      })
-      if (error) throw error
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
@@ -174,25 +149,6 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
                   {invitationId ? "Sign In & Accept Invitation" : "Sign In"}
                 </Button>
               </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                className="w-full bg-transparent"
-                disabled={loading}
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Google
-              </Button>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
@@ -249,25 +205,6 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
                   {invitationId ? "Sign Up & Accept Invitation" : "Sign Up"}
                 </Button>
               </form>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                className="w-full bg-transparent"
-                disabled={loading}
-              >
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Google
-              </Button>
             </TabsContent>
           </Tabs>
         </CardContent>
