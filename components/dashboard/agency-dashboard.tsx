@@ -22,6 +22,8 @@ export default function AgencyDashboard({ user }: AgencyDashboardProps) {
     setLoading(true)
 
     try {
+      console.log("[v0] Agency dashboard fetching trips for user:", user.id)
+
       // Agencies can view all public trips and private trips they have access to
       const { data: tripsData, error } = await supabase
         .from("trips")
@@ -35,15 +37,18 @@ export default function AgencyDashboard({ user }: AgencyDashboardProps) {
       `)
         .order("created_at", { ascending: false })
 
+      console.log("[v0] Agency trips query result:", { data: tripsData, error })
+
       if (error) {
-        console.error("Error fetching trips for agency:", error)
+        console.error("[v0] Error fetching trips for agency:", error)
       } else {
-        console.log("Agency fetched trips:", tripsData)
+        console.log("[v0] Agency fetched trips count:", tripsData?.length || 0)
+        console.log("[v0] Agency fetched trips:", tripsData)
       }
 
       setTrips(tripsData || [])
     } catch (error) {
-      console.error("Error in agency fetchTrips:", error)
+      console.error("[v0] Error in agency fetchTrips:", error)
     } finally {
       setLoading(false)
     }
