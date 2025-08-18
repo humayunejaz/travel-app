@@ -7,9 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plane, Users, MapPin, Calendar, Mail, Shield, Gift } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 export default function HeroSection() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [invitationId, setInvitationId] = useState<string | null>(null)
   const [showInvitationAlert, setShowInvitationAlert] = useState(false)
 
@@ -20,6 +23,14 @@ export default function HeroSection() {
       setShowInvitationAlert(true)
     }
   }, [searchParams])
+
+  const handleInvitationAccept = async () => {
+    if (invitationId) {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push(`/auth?invitation=${invitationId}`)
+    }
+  }
 
   const authLink = invitationId ? `/auth?invitation=${invitationId}` : "/auth"
 
@@ -70,9 +81,15 @@ export default function HeroSection() {
             family vacation or organizing corporate travel, we make it easy.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button size="lg" asChild>
-              <Link href={authLink}>{invitationId ? "Accept Invitation" : "Start Planning"}</Link>
-            </Button>
+            {invitationId ? (
+              <Button size="lg" onClick={handleInvitationAccept}>
+                Accept Invitation
+              </Button>
+            ) : (
+              <Button size="lg" asChild>
+                <Link href={authLink}>Start Planning</Link>
+              </Button>
+            )}
             <Button variant="outline" size="lg" asChild>
               <Link href="#features">Learn More</Link>
             </Button>
@@ -184,9 +201,15 @@ export default function HeroSection() {
             Join thousands of travelers who are already using our platform to plan amazing trips together.
           </p>
           <div className="mt-8 flex items-center justify-center gap-x-6">
-            <Button size="lg" asChild>
-              <Link href={authLink}>{invitationId ? "Accept Your Invitation" : "Create Your First Trip"}</Link>
-            </Button>
+            {invitationId ? (
+              <Button size="lg" onClick={handleInvitationAccept}>
+                Accept Your Invitation
+              </Button>
+            ) : (
+              <Button size="lg" asChild>
+                <Link href={authLink}>Create Your First Trip</Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>
