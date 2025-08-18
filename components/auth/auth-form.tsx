@@ -39,7 +39,7 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const signUpOptions = {
         email,
         password,
         options: {
@@ -48,15 +48,50 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
             role,
             agency_name: role === "agency" ? agencyName : null,
           },
+          emailRedirectTo: role === "agency" ? undefined : window.location.origin,
         },
-      })
+      }
 
-      if (error) throw error
+      if (role === "agency") {
+        const { data, error } = await supabase.auth.signUp({
+          ...signUpOptions,
+          options: {
+            ...signUpOptions.options,
+            emailRedirectTo: undefined,
+          },
+        })
 
-      toast({
-        title: "Check your email",
-        description: "We sent you a confirmation link.",
-      })
+        if (error) throw error
+
+        if (data.user && !data.user.email_confirmed_at) {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          })
+
+          if (signInError) throw signInError
+
+          toast({
+            title: "Agency account created",
+            description: "Welcome! Your agency account is ready to use.",
+          })
+
+          if (invitationId) {
+            window.location.href = `/invitations/${invitationId}`
+          } else {
+            window.location.href = "/dashboard"
+          }
+        }
+      } else {
+        const { error } = await supabase.auth.signUp(signUpOptions)
+
+        if (error) throw error
+
+        toast({
+          title: "Check your email",
+          description: "We sent you a confirmation link.",
+        })
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -80,7 +115,6 @@ export default function AuthForm({ invitationId }: AuthFormProps) {
 
       if (error) throw error
 
-      // If there's an invitation, redirect to invitation page
       if (invitationId) {
         window.location.href = `/invitations/${invitationId}`
       } else {
