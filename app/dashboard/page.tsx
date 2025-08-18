@@ -5,18 +5,28 @@ import UserDashboard from "@/components/dashboard/user-dashboard"
 import AgencyDashboard from "@/components/dashboard/agency-dashboard"
 
 export default async function DashboardPage() {
-  const supabase = await createServerClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
+  let supabase
+  let authUser
+  let user
 
-  if (!authUser) {
-    redirect("/auth")
-  }
+  try {
+    supabase = await createServerClient()
+    const authResult = await supabase.auth.getUser()
+    authUser = authResult.data.user
 
-  const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
+    if (!authUser) {
+      redirect("/auth")
+    }
 
-  if (!user) {
+    const userResult = await supabase.from("users").select("*").eq("id", authUser.id).single()
+    user = userResult.data
+
+    if (!user) {
+      redirect("/auth")
+    }
+  } catch (error) {
+    console.log("[v0] Dashboard error:", error)
+    await new Promise((resolve) => setTimeout(resolve, 1000))
     redirect("/auth")
   }
 
