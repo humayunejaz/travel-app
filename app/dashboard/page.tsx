@@ -24,6 +24,10 @@ export default async function DashboardPage() {
     if (!user) {
       redirect("/auth")
     }
+
+    console.log("[v0] Dashboard user data:", user)
+    console.log("[v0] User role:", user.role)
+    console.log("[v0] Is agency?", user.role === "agency")
   } catch (error) {
     console.log("[v0] Dashboard error:", error)
     await new Promise((resolve) => setTimeout(resolve, 1000))
