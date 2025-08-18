@@ -9,22 +9,44 @@ import type { User, Trip } from "@/lib/types"
 import TripCard from "@/components/trips/trip-card"
 
 interface AgencyDashboardProps {
-  user: User
+  user?: User
 }
 
-export default function AgencyDashboard({ user }: AgencyDashboardProps) {
+export function AgencyDashboard({ user }: AgencyDashboardProps) {
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState<User | null>(user || null)
 
   const supabase = createClient()
+
+  const fetchUser = async () => {
+    if (!user) {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser()
+      if (authUser) {
+        const { data: profile } = await supabase.from("user_profiles").select("*").eq("id", authUser.id).single()
+
+        if (profile) {
+          setCurrentUser({
+            id: authUser.id,
+            email: authUser.email || "",
+            full_name: profile.full_name,
+            role: profile.role,
+            agency_name: profile.agency_name,
+            created_at: profile.created_at,
+          })
+        }
+      }
+    }
+  }
 
   const fetchTrips = async () => {
     setLoading(true)
 
     try {
-      console.log("[v0] Agency dashboard fetching trips for user:", user.id)
+      console.log("[v0] Agency dashboard fetching all trips")
 
-      // Agencies can view all public trips and private trips they have access to
       const { data: tripsData, error } = await supabase
         .from("trips")
         .select(`
@@ -55,11 +77,17 @@ export default function AgencyDashboard({ user }: AgencyDashboardProps) {
   }
 
   useEffect(() => {
-    console.log("Agency dashboard mounted for user:", user.id)
-    fetchTrips()
-  }, [user.id])
+    fetchUser()
+  }, [])
 
-  if (loading) {
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Agency dashboard mounted for user:", currentUser.id)
+      fetchTrips()
+    }
+  }, [currentUser])
+
+  if (loading || !currentUser) {
     return <div className="flex justify-center py-8">Loading...</div>
   }
 
@@ -73,7 +101,7 @@ export default function AgencyDashboard({ user }: AgencyDashboardProps) {
         <h1 className="text-3xl font-bold text-gray-900">Agency Dashboard</h1>
         <p className="text-gray-600">Monitor travel plans and discover opportunities</p>
         <Badge variant="secondary" className="mt-2">
-          {user.agency_name}
+          {currentUser.agency_name}
         </Badge>
       </div>
 
@@ -139,3 +167,5 @@ export default function AgencyDashboard({ user }: AgencyDashboardProps) {
     </div>
   )
 }
+
+export default AgencyDashboard
